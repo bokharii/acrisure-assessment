@@ -7,7 +7,7 @@ VIN format: exactly 17 alphanumeric characters, excluding I, O, and Q (matches r
 **Input:** `vin` (string)
 
 **Behavior:**
-1. Normalize input (trim, uppercase).
+1. Normalize input (trim whitespace, uppercase).
 2. Validate against VIN format above. If the VIN is invalid, return a 400 error.
 3. Check SQLite cache for this VIN.
 4. If VIN is found, return cached record, `cached=true`.
@@ -45,3 +45,12 @@ VIN format: exactly 17 alphanumeric characters, excluding I, O, and Q (matches r
   "cached": false
 }
 ```
+
+## /remove
+**Input:** `vin` (string)
+
+**Behavior:**
+1. Normalize input (trim whitespace, uppercase).
+2. Validate against VIN format above. If the VIN is invalid, return a 400 error.
+3. If there exists a row in the SQLite cache that matches the inputted VIN, delete it.
+4. 
