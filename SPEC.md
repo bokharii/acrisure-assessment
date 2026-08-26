@@ -53,4 +53,17 @@ VIN format: exactly 17 alphanumeric characters, excluding I, O, and Q (matches r
 1. Normalize input (trim whitespace, uppercase).
 2. Validate against VIN format above. If the VIN is invalid, return a 400 error.
 3. If there exists a row in the SQLite cache that matches the inputted VIN, delete it.
-4. 
+4. If the delete completes without an error, return 'success=true', regardless of if that row actually existed (my design choice)
+5. If the database operation itself fails, return a 500 error.
+
+**Edge cases:**
+- VIN that does not meet requirements (wrong length, non-alphanumeric, contains I/O/Q) should result in a 400 error
+- Requesting to remove a VIN that doesn't exist in the cache should result in `success: true` (idempotent)
+- If there is a database error during delete then we should return a 500 error
+
+**Example response**
+```json
+{
+  "vin": "1HGCM82633A004352",
+  "success": true
+}
