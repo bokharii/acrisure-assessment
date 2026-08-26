@@ -67,3 +67,19 @@ VIN format: exactly 17 alphanumeric characters, excluding I, O, and Q (matches r
   "vin": "1HGCM82633A004352",
   "success": true
 }
+```
+
+## /export
+**Input:** none
+
+**Behavior:**
+1. Query all the rows currently in the SQLite cache
+2. Load results into a table structure (pandas DataFrame)
+3. Write the table to Parquet format
+4. Return the Parquet file as a binary download
+
+**Edge cases:**
+- If the cache is empty, represent this through a valid empty Parquet file (should have the correct columns but zero rows)
+
+**Example response**
+A binary file (application/octet-stream), served with Content-Disposition:attachment
