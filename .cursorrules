@@ -1,0 +1,24 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Project conventions
+
+- This is a FastAPI backend for VIN decoding, backed by SQLite, using the vPIC API.
+  # project context
+
+- Before implementing a route, read SPEC.md for the exact requirements, edge cases, and response shapes. Follow it precisely, don't invent behavior not specified there.
+  # makes sure that the agent does not implement any functionality that I did not explicitly mention
+
+- Use type hints on all function signatures.
+
+- Use async def for route handlers and any function making HTTP calls.
+  # ensures that the app doesn't get hung up on any requests
+
+- Use httpx for external API calls, not requests.
+
+- Prefer FastAPI's HTTPException for error responses, with status codes matching SPEC.md exactly.
+  # makes sure that we are using the corret error codes to be as descriptive as possible
+
+- Keep functions small and single-purpose; don't combine validation, DB access, and external API calls into one function.
