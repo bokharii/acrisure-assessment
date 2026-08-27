@@ -1,0 +1,25 @@
+import sqlite3
+from pathlib import Path
+
+DB_PATH = Path(__file__).resolve().parent / "cache.db"
+
+
+def get_connection() -> sqlite3.Connection:
+    """Return a connection to the SQLite cache database."""
+    return sqlite3.connect(DB_PATH)
+
+
+def init_db() -> None:
+    """Create cache.db and the vin_cache table if they do not already exist."""
+    with get_connection() as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS vin_cache (
+                vin TEXT PRIMARY KEY,
+                make TEXT,
+                model TEXT,
+                model_year TEXT,
+                body_class TEXT
+            )
+            """
+        )
