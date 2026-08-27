@@ -43,3 +43,13 @@ def get_cached_vin(vin: str) -> dict | None:
         "model_year": row[3],
         "body_class": row[4],
     }
+
+
+def insert_vin(vin: str, data: dict) -> None:
+    """Insert a new row into vin_cache for the given VIN and decoded data."""
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO vin_cache (vin, make, model, model_year, body_class) VALUES (?, ?, ?, ?, ?)",
+            (vin, data["make"], data["model"], data["model_year"], data["body_class"]),
+        )
+        conn.commit()
