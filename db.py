@@ -23,3 +23,23 @@ def init_db() -> None:
             )
             """
         )
+
+def get_cached_vin(vin: str) -> dict | None:
+    """Return the cached record for a VIN, or None if not cached."""
+    with get_connection() as conn:
+        cursor = conn.execute(
+            "SELECT vin, make, model, model_year, body_class FROM vin_cache WHERE vin = ?",
+            (vin,),
+        )
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return {
+        "vin": row[0],
+        "make": row[1],
+        "model": row[2],
+        "model_year": row[3],
+        "body_class": row[4],
+    }

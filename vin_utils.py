@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 
+# real-world VINs exclude IOQ due to them resembling '1' and '0'
 _EXCLUDED_LETTERS = "IOQ"
 
 
