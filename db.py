@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from typing import Optional
 
 DB_PATH = Path(__file__).resolve().parent / "cache.db"
 
@@ -24,7 +25,7 @@ def init_db() -> None:
             """
         )
 
-def get_cached_vin(vin: str) -> dict | None:
+def get_cached_vin(vin: str) -> Optional[dict]:
     """Return the cached record for a VIN, or None if not cached."""
     with get_connection() as conn:
         cursor = conn.execute(
