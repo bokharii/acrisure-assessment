@@ -16,6 +16,20 @@ class VinRequest(BaseModel):
     vin: str
 
 
+class LookupResponse(BaseModel):
+    vin: str
+    make: str
+    model: str
+    model_year: str
+    body_class: str
+    cached: bool
+
+
+class RemoveResponse(BaseModel):
+    vin: str
+    success: bool
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
@@ -30,8 +44,8 @@ def root():
     return {"status": "testing ok"}
 
 
-@app.post("/lookup")
-async def lookup(request: VinRequest) -> dict:
+@app.post("/lookup", response_model=LookupResponse)
+async def lookup(request: VinRequest) -> LookupResponse:
     normalized_vin = validate_vin(request.vin)
 
     cached = get_cached_vin(normalized_vin)
@@ -76,8 +90,8 @@ async def export() -> Response:
     )
 
 
-@app.post("/remove")
-async def remove(request: VinRequest) -> dict:
+@app.post("/remove", response_model=RemoveResponse)
+async def remove(request: VinRequest) -> RemoveResponse:
     normalized_vin = validate_vin(request.vin)
 
     try:
