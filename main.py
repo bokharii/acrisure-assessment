@@ -1,9 +1,10 @@
+import sqlite3
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from db import get_cached_vin, init_db, insert_vin
+from db import delete_vin, get_cached_vin, init_db, insert_vin
 from vin_utils import validate_vin
 from vpic_client import VinDecodeServiceError, VinNotFoundError, decode_vin
 
@@ -53,3 +54,15 @@ async def lookup(request: VinRequest) -> dict:
         "body_class": data["body_class"],
         "cached": False,
     }
+
+
+@app.post("/remove")
+async def remove(request: VinRequest) -> dict:
+    normalized_vin = validate_vin(request.vin)
+
+    try:
+        delete_vin(normalized_vin)
+    except sqlite3.Error:
+        raise HTTPException(status_code=500, detail="Failed to remove VIN from cache")
+
+    return {"vin": normalized_vin, "success": True}
