@@ -1,10 +1,13 @@
+import io
 import sqlite3
 from contextlib import asynccontextmanager
 
+import pandas as pd
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel
 
-from db import delete_vin, get_cached_vin, init_db, insert_vin
+from db import delete_vin, get_all_cached_vins, get_cached_vin, init_db, insert_vin
 from vin_utils import validate_vin
 from vpic_client import VinDecodeServiceError, VinNotFoundError, decode_vin
 
@@ -54,6 +57,23 @@ async def lookup(request: VinRequest) -> dict:
         "body_class": data["body_class"],
         "cached": False,
     }
+
+
+@app.get("/export")
+async def export() -> Response:
+    rows = get_all_cached_vins()
+
+    columns = ["vin", "make", "model", "model_year", "body_class"]
+    df = pd.DataFrame(rows, columns=columns)
+
+    buffer = io.BytesIO()
+    df.to_parquet(buffer, index=False)
+
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": "attachment; filename=export.parquet"},
+    )
 
 
 @app.post("/remove")
