@@ -1,6 +1,5 @@
 import sqlite3
 from pathlib import Path
-from typing import Optional
 
 DB_PATH = Path(__file__).resolve().parent / "cache.db"
 
@@ -25,7 +24,7 @@ def init_db() -> None:
             """
         )
 
-def get_cached_vin(vin: str) -> Optional[dict]:
+def get_cached_vin(vin: str) -> dict | None:
     """Return the cached record for a VIN, or None if not cached."""
     with get_connection() as conn:
         cursor = conn.execute(
@@ -53,4 +52,10 @@ def insert_vin(vin: str, data: dict) -> None:
             "INSERT INTO vin_cache (vin, make, model, model_year, body_class) VALUES (?, ?, ?, ?, ?)",
             (vin, data["make"], data["model"], data["model_year"], data["body_class"]),
         )
+        conn.commit()
+
+def delete_vin(vin: str) -> None:
+    """Delete the row for the given VIN from vin_cache, if it exists."""
+    with get_connection() as conn:
+        conn.execute("DELETE FROM vin_cache WHERE vin = ?", (vin,))
         conn.commit()
