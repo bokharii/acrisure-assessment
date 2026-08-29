@@ -9,7 +9,12 @@ from pydantic import BaseModel
 
 from db import delete_vin, get_all_cached_vins, get_cached_vin, init_db, insert_vin
 from vin_utils import validate_vin
-from vpic_client import VinDecodeServiceError, VinNotFoundError, decode_vin
+from vpic_client import (
+    VinDecodeServiceError,
+    VinNotFoundError,
+    create_http_client,
+    decode_vin,
+)
 
 
 class VinRequest(BaseModel):
@@ -33,7 +38,9 @@ class RemoveResponse(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    app.state.http_client = create_http_client()
     yield
+    await app.state.http_client.aclose()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -53,11 +60,9 @@ async def lookup(request: VinRequest) -> LookupResponse:
         return {**cached, "cached": True}
 
     try:
-        data = await decode_vin(normalized_vin)
+        data = await decode_vin(normalized_vin, app.state.http_client)
     except VinNotFoundError:
-        raise HTTPException(
-            status_code=404, detail=f"No data found for VIN: {normalized_vin}"
-        )
+        raise HTTPException(status_code=404, detail=f"No data found for VIN: {normalized_vin}")
     except VinDecodeServiceError:
         raise HTTPException(status_code=502, detail="vPIC service unavailable")
 

@@ -16,12 +16,21 @@ def validate_vin(vin: str) -> str:
     normalized = vin.strip().upper()
 
     if len(normalized) != 17:
-        raise HTTPException(status_code=400, detail=f"Invalid VIN: {normalized}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid VIN: {normalized}. VIN must be exactly 17 alphanumeric characters.",
+        )
 
     if not normalized.isalnum():
-        raise HTTPException(status_code=400, detail=f"Invalid VIN: {normalized}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid VIN: {normalized}. VIN must consist of only alphanumeric characters.",
+        )
 
     if any(char in _EXCLUDED_LETTERS for char in normalized):
-        raise HTTPException(status_code=400, detail=f"Invalid VIN: {normalized}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid VIN: {normalized}. VIN cannot contain letters 'I', 'O', 'Q'",
+        )
 
     return normalized

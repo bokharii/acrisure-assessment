@@ -12,7 +12,12 @@ class VinDecodeServiceError(Exception):
     """Raised when the vPIC API call fails, errors, or times out."""
 
 
-async def decode_vin(vin: str) -> dict:
+def create_http_client() -> httpx.AsyncClient:
+    """Return an httpx client configured for vPIC requests."""
+    return httpx.AsyncClient(timeout=_TIMEOUT)
+
+
+async def decode_vin(vin: str, client: httpx.AsyncClient) -> dict:
     """Call vPIC DecodeVinValues and return decoded fields for the given VIN.
 
     Returns a dict with keys: make, model, model_year, body_class.
@@ -22,9 +27,8 @@ async def decode_vin(vin: str) -> dict:
     url = VPIC_URL.format(vin=vin)
 
     try:
-        async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-            response = await client.get(url)
-            response.raise_for_status()
+        response = await client.get(url)
+        response.raise_for_status()
     except httpx.RequestError as exc:
         raise VinDecodeServiceError("vPIC request failed") from exc
     except httpx.HTTPStatusError as exc:
