@@ -1,6 +1,7 @@
+from unittest.mock import AsyncMock, MagicMock
+
 import httpx
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 from vpic_client import VinDecodeServiceError, VinNotFoundError, decode_vin
 
