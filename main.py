@@ -2,8 +2,9 @@ import io
 import sqlite3
 from contextlib import asynccontextmanager
 
+import httpx
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
@@ -35,6 +36,10 @@ class RemoveResponse(BaseModel):
     success: bool
 
 
+def get_http_client(request: Request) -> httpx.AsyncClient:
+    return request.app.state.http_client
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
@@ -52,7 +57,10 @@ def root():
 
 
 @app.post("/lookup", response_model=LookupResponse)
-async def lookup(request: VinRequest) -> LookupResponse:
+async def lookup(
+    request: VinRequest,
+    client: httpx.AsyncClient = Depends(get_http_client),  # noqa: B008
+) -> LookupResponse:
     normalized_vin = validate_vin(request.vin)
 
     cached = get_cached_vin(normalized_vin)
@@ -60,7 +68,7 @@ async def lookup(request: VinRequest) -> LookupResponse:
         return {**cached, "cached": True}
 
     try:
-        data = await decode_vin(normalized_vin, app.state.http_client)
+        data = await decode_vin(normalized_vin, client)
     except VinNotFoundError:
         raise HTTPException(status_code=404, detail=f"No data found for VIN: {normalized_vin}")
     except VinDecodeServiceError:

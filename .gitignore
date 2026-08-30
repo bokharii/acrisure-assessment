@@ -3,3 +3,4 @@ __pycache__/
 *.db
 .ruff_cache/
 .pytest_cache/
+.vscode/
