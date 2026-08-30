@@ -1,4 +1,5 @@
 import io
+import sqlite3
 from unittest.mock import AsyncMock
 
 import pandas as pd
@@ -99,6 +100,20 @@ def test_lookup_returns_400_for_invalid_vin():
     response = client.post("/lookup", json={"vin": "TOOSHORT"})
 
     assert response.status_code == 400
+
+
+def test_lookup_returns_500_when_insert_fails(mock_decode_vin, monkeypatch):
+    mock_decode_vin.return_value = DECODED_DATA
+    app.dependency_overrides[get_http_client] = lambda: AsyncMock()
+
+    def _raise_sqlite_error(*args: object, **kwargs: object) -> None:
+        raise sqlite3.Error("disk i/o")
+
+    monkeypatch.setattr(main, "insert_vin", _raise_sqlite_error)
+
+    response = client.post("/lookup", json={"vin": VALID_VIN})
+
+    assert response.status_code == 500
 
 
 # ── /remove ───────────────────────────────────────────────────────────────────

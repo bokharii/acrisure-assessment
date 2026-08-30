@@ -10,7 +10,7 @@ VIN = "1HGCM82633A004352"
 pytestmark = pytest.mark.asyncio
 
 
-def _make_response(payload: dict, status_error: bool = False) -> MagicMock:
+def _make_response(payload: object, status_error: bool = False) -> MagicMock:
     """Build a mock httpx response with a controllable json() and raise_for_status()."""
     response = MagicMock()
     response.json.return_value = payload
@@ -76,6 +76,36 @@ async def test_decode_vin_raises_service_error_on_request_error():
 async def test_decode_vin_raises_service_error_on_http_status_error():
     client = AsyncMock()
     client.get.return_value = _make_response({}, status_error=True)
+
+    with pytest.raises(VinDecodeServiceError):
+        await decode_vin(VIN, client)
+
+
+async def test_decode_vin_raises_service_error_on_invalid_json():
+    response = _make_response({})
+    response.json.side_effect = ValueError("invalid json")
+    client = AsyncMock()
+    client.get.return_value = response
+
+    with pytest.raises(VinDecodeServiceError):
+        await decode_vin(VIN, client)
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        None,
+        [],
+        {},
+        {"Results": None},
+        {"Results": []},
+        {"Results": "not-a-list"},
+        {"Results": [None]},
+    ],
+)
+async def test_decode_vin_raises_service_error_on_malformed_payload(payload: object):
+    client = AsyncMock()
+    client.get.return_value = _make_response(payload)
 
     with pytest.raises(VinDecodeServiceError):
         await decode_vin(VIN, client)

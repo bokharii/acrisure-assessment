@@ -63,7 +63,11 @@ async def lookup(
 ) -> LookupResponse:
     normalized_vin = validate_vin(request.vin)
 
-    cached = get_cached_vin(normalized_vin)
+    try:
+        cached = get_cached_vin(normalized_vin)
+    except sqlite3.Error:
+        raise HTTPException(status_code=500, detail="Failed to read VIN from cache")
+
     if cached is not None:
         return {**cached, "cached": True}
 
@@ -74,7 +78,10 @@ async def lookup(
     except VinDecodeServiceError:
         raise HTTPException(status_code=502, detail="vPIC service unavailable")
 
-    insert_vin(normalized_vin, data)
+    try:
+        insert_vin(normalized_vin, data)
+    except sqlite3.Error:
+        raise HTTPException(status_code=500, detail="Failed to store VIN in cache")
 
     return {
         "vin": normalized_vin,
