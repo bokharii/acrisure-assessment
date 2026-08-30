@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from db import delete_vin, get_all_cached_vins, get_cached_vin, init_db, insert_vin
 from vin_utils import validate_vin
@@ -18,7 +18,7 @@ from vpic_client import (
 
 
 class VinRequest(BaseModel):
-    vin: str
+    vin: str = Field(..., min_length=1, description="A VIN to look up or remove")
 
 
 class LookupResponse(BaseModel):
