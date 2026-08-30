@@ -74,7 +74,9 @@ async def lookup(
     try:
         data = await decode_vin(normalized_vin, client)
     except VinNotFoundError:
-        raise HTTPException(status_code=404, detail=f"No data found for VIN: {normalized_vin}")
+        raise HTTPException(
+            status_code=404, detail=f"No data found for VIN: {normalized_vin}"
+        )
     except VinDecodeServiceError:
         raise HTTPException(status_code=502, detail="vPIC service unavailable")
 
@@ -98,6 +100,8 @@ async def export() -> Response:
     rows = get_all_cached_vins()
 
     columns = ["vin", "make", "model", "model_year", "body_class"]
+    # columns= keeps the Parquet schema when the cache is empty, so an /export on an empty
+    # cache will still export a valid Parquet file
     df = pd.DataFrame(rows, columns=columns)
 
     buffer = io.BytesIO()
@@ -119,4 +123,6 @@ async def remove(request: VinRequest) -> RemoveResponse:
     except sqlite3.Error:
         raise HTTPException(status_code=500, detail="Failed to remove VIN from cache")
 
+    # Idempotent by design: VIN not in cache is the correct end state
+    # whether or not it existed in cache to begin with
     return {"vin": normalized_vin, "success": True}

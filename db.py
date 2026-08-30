@@ -49,6 +49,8 @@ def get_cached_vin(vin: str) -> dict | None:
 def insert_vin(vin: str, data: dict) -> None:
     """Insert a new row into vin_cache for the given VIN and decoded data."""
     with get_connection() as conn:
+        # Decided to use INSERT instead of INSERT OR REPLACE since /lookup only calls this after
+        # get_cached_vin already confirmed no row exists for this VIN.
         conn.execute(
             "INSERT INTO vin_cache (vin, make, model, model_year, body_class) VALUES (?, ?, ?, ?, ?)",
             (vin, data["make"], data["model"], data["model_year"], data["body_class"]),

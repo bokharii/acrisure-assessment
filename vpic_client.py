@@ -64,6 +64,8 @@ async def decode_vin(vin: str, client: httpx.AsyncClient) -> dict:
 
     fields = _parse_decode_result(payload)
 
+    # vPIC returns 200 even when it has no data for a VIN; empty fields
+    # signal "not found" rather than the HTTP status.
     if not fields["make"] and not fields["model"] and not fields["body_class"]:
         raise VinNotFoundError(vin)
 
